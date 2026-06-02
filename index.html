@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玩转世界杯，决战到巅峰！</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0a1f3d, #1e3a5f); color: #fff; margin:0; padding:15px 0; min-height:100vh; }
+        .container { max-width: 1100px; margin:0 auto; background:rgba(255,255,255,0.08); border-radius:20px; overflow:hidden; box-shadow:0 15px 40px rgba(0,0,0,0.6); }
+        h1 { margin:0; padding:0; background:rgba(0,0,0,0.5); }
+        .header-inner { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; gap:10px; }
+        .header-trophy { font-size:1.8em; flex-shrink:0; line-height:1; }
+        .header-titles { display:flex; flex-direction:column; align-items:center; gap:1px; flex:1; min-width:0; }
+        .header-line1 { color:#ffd700; font-size:clamp(0.95em,3.2vw,1.25em); font-weight:900; letter-spacing:1px; line-height:1.25; white-space:nowrap; }
+        .header-line2 { color:#ffc; font-size:clamp(0.95em,3.2vw,1.25em); font-weight:900; letter-spacing:1px; line-height:1.25; white-space:nowrap; }
+        .header-bird { width:52px; height:52px; object-fit:contain; flex-shrink:0; }
+        .progress { text-align:center; font-size:18px; padding:12px; background:rgba(0,0,0,0.4); font-weight:bold; }
+        .group { background:rgba(255,255,255,0.1); margin:12px 0; padding:14px; border-radius:16px; }
+        .group h3 { color:#ffd700; font-size:1.15em; margin:0 0 8px 0; }
+        .team { display:flex; align-items:center; padding:10px 14px; background:rgba(0,0,0,0.35); border-radius:10px; margin:6px 0; cursor:pointer; transition:background 0.2s, border-color 0.2s; user-select:none; border:1px solid transparent; }
+        .team:hover { background:rgba(255,255,255,0.08); }
+        .team.selected-1 { background:rgba(200,16,46,0.6); border-color:rgba(220,40,60,0.9); color:#fff; }
+        .team.selected-2 { background:rgba(200,16,46,0.28); border-color:rgba(200,16,46,0.55); color:#fff; }
+        .team.selected-3 { background:rgba(200,16,46,0.12); border-color:rgba(200,16,46,0.3); color:#ffcccc; }
+        .team-flag { width:34px; height:23px; margin-right:11px; border-radius:3px; overflow:hidden; flex-shrink:0; object-fit:cover; }
+        .team-name { flex:1; font-size:15px; font-weight:600; }
+        .position { font-size:12px; font-weight:700; width:36px; text-align:center; flex-shrink:0; color:rgba(255,255,255,0.6); }
+        .groups-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; padding:16px; }
+        .third-item { display:flex; align-items:center; padding:10px 14px; background:rgba(0,0,0,0.35); border-radius:10px; margin:5px 0; cursor:pointer; transition:all 0.2s; user-select:none; border:1px solid transparent; }
+        .third-item:hover { background:rgba(255,215,0,0.12); }
+        .third-item.sel { background:rgba(255,215,0,0.18); border-color:#ffd700; }
+        .grp-badge { background:#ffd700; color:#000; border-radius:4px; padding:1px 6px; font-weight:900; font-size:13px; margin-right:10px; flex-shrink:0; }
+        .counter { text-align:center; font-size:17px; margin:12px 0; color:#ffd700; font-weight:bold; }
+        .match-card { background:rgba(0,0,0,0.4); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; transition:border-color 0.2s; }
+        .match-card:hover { border-color:rgba(255,215,0,0.35); }
+        .match-header { background:rgba(255,215,0,0.12); padding:7px 14px; font-size:13px; color:#ffd700; font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+        .match-num-badge { background:rgba(255,215,0,0.25); color:#ffd700; border-radius:4px; padding:1px 7px; font-size:11px; font-weight:900; letter-spacing:1px; flex-shrink:0; }
+        .match-team-row { display:flex; align-items:center; padding:11px 14px; cursor:pointer; transition:background 0.15s; border-left:3px solid transparent; }
+        .match-team-row:hover { background:rgba(255,255,255,0.06); }
+        .match-team-row.winner { background:rgba(0,212,138,0.12); border-left-color:#00d48a; }
+        .match-team-row.loser { opacity:0.35; }
+        .mflag { width:30px; height:20px; margin-right:9px; border-radius:2px; overflow:hidden; flex-shrink:0; object-fit:cover; }
+        .slot-label { font-size:11px; color:rgba(255,255,255,0.4); margin-right:7px; white-space:nowrap; flex-shrink:0; min-width:52px; }
+        .mname { flex:1; font-size:15px; font-weight:600; }
+        .mcrown { color:#ffd700; font-size:15px; margin-left:5px; }
+        .match-divider { height:1px; background:rgba(255,255,255,0.1); margin:0 10px; }
+        .r32-wrapper { padding:14px; }
+        .r32-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:9px; }
+        .btn-row { text-align:center; padding:20px; background:rgba(0,0,0,0.3); display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+        button { background:linear-gradient(135deg,#c8102e,#8b0000); color:white; border:none; padding:12px 28px; border-radius:50px; font-size:16px; cursor:pointer; font-weight:700; transition:all 0.2s; }
+        button:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(200,16,46,0.5); }
+        button:disabled { background:linear-gradient(135deg,#444,#333); cursor:not-allowed; transform:none; box-shadow:none; opacity:0.6; }
+        button.secondary { background:linear-gradient(135deg,#1a3a6e,#0d1f3c); }
+        button.secondary:hover { box-shadow:0 6px 20px rgba(26,58,110,0.5); }
+        .step-title { text-align:center; font-size:1.45em; color:#ffd700; margin:18px 0 14px; font-weight:700; }
+        .step-desc { text-align:center; font-size:14px; color:#aaa; margin:-6px 0 14px; }
+        .check-icon { color:#00d48a; font-size:18px; margin-left:auto; }
+        /* Result canvas page */
+        #resultWrap { padding:16px; }
+        #resultCanvas { display:block; max-width:100%; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.6); margin:0 auto; }
+        .result-actions { display:flex; justify-content:center; gap:12px; padding:16px 0 4px; flex-wrap:wrap; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <div class="header-inner">
+            <span class="header-trophy">🏆</span>
+            <div class="header-titles">
+                <span class="header-line1">玩转世界杯，</span>
+                <span class="header-line2">决战到巅峰！</span>
+            </div>
+            <img class="header-bird" id="headerBird" src="logo.png" alt="bird">
+        </div>
+    </h1>
+    <div class="progress">步骤 <span id="stepNum">1</span> / 7</div>
+    <div id="steps"></div>
+    <div class="btn-row" id="btnRow">
+        <button class="secondary" onclick="prevStep()">← 上一步</button>
+        <button id="nextBtn" onclick="nextStep()">下一步 →</button>
+    </div>
+</div>
+
+<script>
+const QR_DATA_URL = "QR.png";
+const BIRD_DATA_URL = "logo.png";
+
+// ==================== 球队数据（含国旗URL）====================
+const groupsData = {
+    "A": [{name:"墨西哥",flag:"mx.svg"},{name:"南非",flag:"za.svg"},{name:"韩国",flag:"kr.svg"},{name:"捷克",flag:"cz.svg"}],
+    "B": [{name:"加拿大",flag:"ca.svg"},{name:"波黑",flag:"ba.svg"},{name:"卡塔尔",flag:"qa.svg"},{name:"瑞士",flag:"ch.svg"}],
+    "C": [{name:"巴西",flag:"br.svg"},{name:"摩洛哥",flag:"ma.svg"},{name:"海地",flag:"ht.svg"},{name:"苏格兰",flag:"sct.svg"}],
+    "D": [{name:"美国",flag:"us.svg"},{name:"巴拉圭",flag:"py.svg"},{name:"澳大利亚",flag:"au.svg"},{name:"土耳其",flag:"tr.svg"}],
+    "E": [{name:"德国",flag:"de.svg"},{name:"库拉索",flag:"cw.svg"},{name:"科特迪瓦",flag:"ci.svg"},{name:"厄瓜多尔",flag:"ec.svg"}],
+    "F": [{name:"荷兰",flag:"nl.svg"},{name:"日本",flag:"jp.svg"},{name:"瑞典",flag:"se.svg"},{name:"突尼斯",flag:"tn.svg"}],
+    "G": [{name:"比利时",flag:"be.svg"},{name:"埃及",flag:"eg.svg"},{name:"伊朗",flag:"ir.svg"},{name:"新西兰",flag:"nz.svg"}],
+    "H": [{name:"西班牙",flag:"es.svg"},{name:"佛得角",flag:"cv.svg"},{name:"沙特阿拉伯",flag:"sa.svg"},{name:"乌拉圭",flag:"uy.svg"}],
+    "I": [{name:"法国",flag:"fr.svg"},{name:"塞内加尔",flag:"sn.svg"},{name:"伊拉克",flag:"iq.svg"},{name:"挪威",flag:"no.svg"}],
+    "J": [{name:"阿根廷",flag:"ar.svg"},{name:"阿尔及利亚",flag:"dz.svg"},{name:"奥地利",flag:"at.svg"},{name:"约旦",flag:"jo.svg"}],
+    "K": [{name:"葡萄牙",flag:"pt.svg"},{name:"刚果（金）",flag:"cd.svg"},{name:"乌兹别克斯坦",flag:"uz.svg"},{name:"哥伦比亚",flag:"co.svg"}],
+    "L": [{name:"英格兰",flag:"eng.svg"},{name:"克罗地亚",flag:"hr.svg"},{name:"加纳",flag:"gh.svg"},{name:"巴拿马",flag:"pa.svg"}],
+};
+
+// ==================== 第三名映射表 ====================
+const THIRD_MAP = {"EFGHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"F","1G":"H","1I":"G","1K":"L","1L":"K"},"DFGHIJKL":{"1A":"H","1B":"G","1D":"I","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"DEGHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"D","1G":"H","1I":"G","1K":"L","1L":"K"},"DEFHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"DEFGIJKL":{"1A":"E","1B":"G","1D":"I","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"DEFGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"DEFGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"DEFGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"DEFGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"CFGHIJKL":{"1A":"H","1B":"G","1D":"I","1E":"C","1G":"J","1I":"F","1K":"L","1L":"K"},"CEGHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"H","1I":"G","1K":"L","1L":"K"},"CEFHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"CEFGIJKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"J","1I":"F","1K":"L","1L":"K"},"CEFGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"CEFGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"CEFGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"F","1K":"L","1L":"I"},"CEFGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"F","1K":"I","1L":"K"},"CDGHIJKL":{"1A":"H","1B":"G","1D":"I","1E":"C","1G":"J","1I":"D","1K":"L","1L":"K"},"CDFHIJKL":{"1A":"C","1B":"J","1D":"I","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDFGIJKL":{"1A":"C","1B":"G","1D":"I","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"CDFGHJKL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDFGHIKL":{"1A":"C","1B":"G","1D":"I","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDFGHIJL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"CDFGHIJK":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"CDEHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"CDEGIJKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"J","1I":"D","1K":"L","1L":"K"},"CDEGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"CDEGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"CDEGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"D","1K":"L","1L":"I"},"CDEGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"H","1I":"D","1K":"I","1L":"K"},"CDEFIJKL":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"CDEFHJKL":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDEFHIKL":{"1A":"C","1B":"E","1D":"I","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDEFHIJL":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"CDEFHIJK":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"CDEFGJKL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"CDEFGIKL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"CDEFGIJL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"J","1I":"F","1K":"L","1L":"I"},"CDEFGIJK":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"J","1I":"F","1K":"I","1L":"K"},"CDEFGHKL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"CDEFGHJL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"L","1L":"E"},"CDEFGHJK":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"E","1L":"K"},"CDEFGHIL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"CDEFGHIK":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"CDEFGHIJ":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"H","1I":"F","1K":"E","1L":"I"},"BFGHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"I","1I":"G","1K":"L","1L":"K"},"BEGHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"B","1G":"H","1I":"G","1K":"L","1L":"K"},"BEFHIJKL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"I","1I":"H","1K":"L","1L":"K"},"BEFGIJKL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"I","1I":"G","1K":"L","1L":"K"},"BEFGHJKL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"H","1I":"G","1K":"L","1L":"K"},"BEFGHIKL":{"1A":"E","1B":"G","1D":"B","1E":"F","1G":"I","1I":"H","1K":"L","1L":"K"},"BEFGHIJL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"H","1I":"G","1K":"L","1L":"I"},"BEFGHIJK":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"H","1I":"G","1K":"I","1L":"K"},"BDGHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"I","1I":"G","1K":"L","1L":"K"},"BDFHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BDFGIJKL":{"1A":"I","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"BDFGHJKL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"BDFGHIKL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BDFGHIJL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"I"},"BDFGHIJK":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"I","1L":"K"},"BDEHIJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"I","1I":"H","1K":"L","1L":"K"},"BDEGIJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"I","1I":"G","1K":"L","1L":"K"},"BDEGHJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"G","1K":"L","1L":"K"},"BDEGHIKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"I","1I":"H","1K":"L","1L":"K"},"BDEGHIJL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"G","1K":"L","1L":"I"},"BDEGHIJK":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"G","1K":"I","1L":"K"},"BDEFIJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BDEFHJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BDEFHIKL":{"1A":"E","1B":"I","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BDEFHIJL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"BDEFHIJK":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"BDEFGJKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"BDEFGIKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BDEFGIJL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"I"},"BDEFGIJK":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"I","1L":"K"},"BDEFGHKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BDEFGHJL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"E"},"BDEFGHJK":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"E","1L":"K"},"BDEFGHIL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"BDEFGHIK":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"BDEFGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"E","1L":"I"},"BCGHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"I","1I":"G","1K":"L","1L":"K"},"BCFHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"I","1I":"F","1K":"L","1L":"K"},"BCFGIJKL":{"1A":"I","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"K"},"BCFGHJKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"K"},"BCFGHIKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"I","1I":"F","1K":"L","1L":"K"},"BCFGHIJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"I"},"BCFGHIJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"I","1L":"K"},"BCEHIJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"I","1I":"H","1K":"L","1L":"K"},"BCEGIJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"I","1I":"G","1K":"L","1L":"K"},"BCEGHJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"G","1K":"L","1L":"K"},"BCEGHIKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"I","1I":"H","1K":"L","1L":"K"},"BCEGHIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"G","1K":"L","1L":"I"},"BCEGHIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"G","1K":"I","1L":"K"},"BCEFIJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"I","1I":"F","1K":"L","1L":"K"},"BCEFHJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"BCEFHIKL":{"1A":"E","1B":"I","1D":"B","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"BCEFHIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"F","1K":"L","1L":"I"},"BCEFHIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"F","1K":"I","1L":"K"},"BCEFGJKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"K"},"BCEFGIKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"I","1I":"F","1K":"L","1L":"K"},"BCEFGIJL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"I"},"BCEFGIJK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"I","1L":"K"},"BCEFGHKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"F","1K":"L","1L":"K"},"BCEFGHJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"L","1L":"E"},"BCEFGHJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"E","1L":"K"},"BCEFGHIL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"F","1K":"L","1L":"I"},"BCEFGHIK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"F","1K":"I","1L":"K"},"BCEFGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"E","1L":"I"},"BCDHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"I","1I":"D","1K":"L","1L":"K"},"BCDGIJKL":{"1A":"I","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"K"},"BCDGHJKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"K"},"BCDGHIKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"I","1I":"D","1K":"L","1L":"K"},"BCDGHIJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"I"},"BCDGHIJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"I","1L":"K"},"BCDFIJKL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BCDFHJKL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BCDFHIKL":{"1A":"C","1B":"I","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BCDFHIJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"BCDFHIJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"BCDFGJKL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"K"},"BCDFGIKL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BCDFGIJL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"I"},"BCDFGIJK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"I","1L":"K"},"BCDFGHKL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BCDFGHJL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"J"},"BCDFGHJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"D","1L":"K"},"BCDFGHIL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"BCDFGHIK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"BCDFGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"D","1L":"I"},"BCDEIJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"I","1I":"D","1K":"L","1L":"K"},"BCDEHJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"BCDEHIKL":{"1A":"E","1B":"I","1D":"B","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"BCDEHIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"D","1K":"L","1L":"I"},"BCDEHIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"H","1I":"D","1K":"I","1L":"K"},"BCDEGJKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"K"},"BCDEGIKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"I","1I":"D","1K":"L","1L":"K"},"BCDEGIJL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"I"},"BCDEGIJK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"I","1L":"K"},"BCDEGHKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"D","1K":"L","1L":"K"},"BCDEGHJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"L","1L":"E"},"BCDEGHJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"E","1L":"K"},"BCDEGHIL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"D","1K":"L","1L":"I"},"BCDEGHIK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"H","1I":"D","1K":"I","1L":"K"},"BCDEGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"D","1K":"E","1L":"I"},"BCDEFJKL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"E","1I":"F","1K":"L","1L":"K"},"BCDEFIKL":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"I","1I":"F","1K":"L","1L":"K"},"BCDEFIJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"E","1I":"F","1K":"L","1L":"I"},"BCDEFIJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"E","1I":"F","1K":"I","1L":"K"},"BCDEFHKL":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"K"},"BCDEFHJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"E"},"BCDEFHJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"E","1L":"K"},"BCDEFHIL":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"I"},"BCDEFHIK":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"H","1I":"F","1K":"I","1L":"K"},"BCDEFHIJ":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"H","1I":"F","1K":"E","1L":"I"},"BCDEFGKL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"E","1I":"F","1K":"L","1L":"K"},"BCDEFGJL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"L","1L":"E"},"BCDEFGJK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"E","1L":"K"},"BCDEFGIL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"E","1I":"F","1K":"L","1L":"I"},"BCDEFGIK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"E","1I":"F","1K":"I","1L":"K"},"BCDEFGIJ":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"J","1I":"F","1K":"E","1L":"I"},"BCDEFGHL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"L","1L":"E"},"BCDEFGHK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"E","1L":"K"},"BCDEFGHJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"J","1I":"F","1K":"D","1L":"E"},"BCDEFGHI":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"H","1I":"F","1K":"E","1L":"I"},"AFGHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"AEGHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"A","1G":"H","1I":"G","1K":"L","1L":"K"},"AEFHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"AEFGIJKL":{"1A":"E","1B":"J","1D":"I","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"AEFGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"AEFGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"AEFGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"F","1G":"A","1I":"H","1K":"L","1L":"I"},"AEFGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"F","1G":"A","1I":"H","1K":"I","1L":"K"},"ADGHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ADFHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADFGIJKL":{"1A":"I","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADFGHJKL":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADFGHIKL":{"1A":"H","1B":"G","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADFGHIJL":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ADFGHIJK":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ADEHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ADEGIJKL":{"1A":"E","1B":"J","1D":"I","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ADEGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ADEGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ADEGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"H","1K":"L","1L":"I"},"ADEGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"H","1K":"I","1L":"K"},"ADEFIJKL":{"1A":"E","1B":"J","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFHJKL":{"1A":"H","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFHIKL":{"1A":"H","1B":"E","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFHIJL":{"1A":"H","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ADEFHIJK":{"1A":"H","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ADEFGJKL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFGIKL":{"1A":"E","1B":"G","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFGIJL":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ADEFGIJK":{"1A":"E","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ADEFGHKL":{"1A":"H","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ADEFGHJL":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ADEFGHJK":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ADEFGHIL":{"1A":"H","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ADEFGHIK":{"1A":"H","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ADEFGHIJ":{"1A":"H","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ACGHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"C","1G":"A","1I":"G","1K":"L","1L":"K"},"ACFHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACFGIJKL":{"1A":"I","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACFGHJKL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACFGHIKL":{"1A":"H","1B":"G","1D":"I","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACFGHIJL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ACFGHIJK":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ACEHIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ACEGIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"A","1I":"G","1K":"L","1L":"K"},"ACEGHJKL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ACEGHIKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ACEGHIJL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"H","1K":"L","1L":"I"},"ACEGHIJK":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"H","1K":"I","1L":"K"},"ACEFIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFHJKL":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFHIKL":{"1A":"H","1B":"E","1D":"I","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFHIJL":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ACEFHIJK":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ACEFGJKL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFGIKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFGIJL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ACEFGIJK":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ACEFGHKL":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ACEFGHJL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"L","1L":"E"},"ACEFGHJK":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"E","1L":"K"},"ACEFGHIL":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ACEFGHIK":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ACEFGHIJ":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"E","1L":"I"},"ACDHIJKL":{"1A":"H","1B":"J","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDGIJKL":{"1A":"I","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDGHJKL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDGHIKL":{"1A":"H","1B":"G","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDGHIJL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDGHIJK":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDFIJKL":{"1A":"C","1B":"J","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDFHJKL":{"1A":"H","1B":"J","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDFHIKL":{"1A":"H","1B":"F","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDFHIJL":{"1A":"H","1B":"J","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDFHIJK":{"1A":"H","1B":"J","1D":"F","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDFGJKL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDFGIKL":{"1A":"C","1B":"G","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDFGIJL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ACDFGIJK":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ACDFGHKL":{"1A":"H","1B":"G","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDFGHJL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"H"},"ACDFGHJK":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ACDFGHIL":{"1A":"H","1B":"G","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDFGHIK":{"1A":"H","1B":"G","1D":"F","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDFGHIJ":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ACDEIJKL":{"1A":"E","1B":"J","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEHJKL":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEHIKL":{"1A":"H","1B":"E","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEHIJL":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDEHIJK":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDEGJKL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEGIKL":{"1A":"E","1B":"G","1D":"I","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEGIJL":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDEGIJK":{"1A":"E","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDEGHKL":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEGHJL":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ACDEGHJK":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"E","1L":"K"},"ACDEGHIL":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDEGHIK":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDEGHIJ":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"D","1K":"E","1L":"I"},"ACDEFJKL":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDEFIKL":{"1A":"C","1B":"E","1D":"I","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDEFIJL":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ACDEFIJK":{"1A":"C","1B":"J","1D":"E","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ACDEFHKL":{"1A":"H","1B":"E","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ACDEFHJL":{"1A":"H","1B":"J","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ACDEFHJK":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ACDEFHIL":{"1A":"H","1B":"E","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ACDEFHIK":{"1A":"H","1B":"E","1D":"F","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ACDEFHIJ":{"1A":"H","1B":"J","1D":"E","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ACDEFGKL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ACDEFGJL":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ACDEFGJK":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ACDEFGIL":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ACDEFGIK":{"1A":"C","1B":"G","1D":"E","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ACDEFGIJ":{"1A":"C","1B":"G","1D":"J","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ACDEFGHL":{"1A":"H","1B":"G","1D":"F","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ACDEFGHK":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ACDEFGHJ":{"1A":"H","1B":"G","1D":"J","1E":"C","1G":"A","1I":"F","1K":"D","1L":"E"},"ACDEFGHI":{"1A":"H","1B":"G","1D":"E","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ABGHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"A","1G":"I","1I":"G","1K":"L","1L":"K"},"ABFHIJKL":{"1A":"H","1B":"J","1D":"B","1E":"A","1G":"I","1I":"F","1K":"L","1L":"K"},"ABFGIJKL":{"1A":"I","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"ABFGHJKL":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"ABFGHIKL":{"1A":"H","1B":"G","1D":"B","1E":"A","1G":"I","1I":"F","1K":"L","1L":"K"},"ABFGHIJL":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"I"},"ABFGHIJK":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"I","1L":"K"},"ABEHIJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"I","1I":"H","1K":"L","1L":"K"},"ABEGIJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"I","1I":"G","1K":"L","1L":"K"},"ABEGHJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"H","1I":"G","1K":"L","1L":"K"},"ABEGHIKL":{"1A":"E","1B":"G","1D":"B","1E":"A","1G":"I","1I":"H","1K":"L","1L":"K"},"ABEGHIJL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"H","1I":"G","1K":"L","1L":"I"},"ABEGHIJK":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"H","1I":"G","1K":"I","1L":"K"},"ABEFIJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"I","1I":"F","1K":"L","1L":"K"},"ABEFHJKL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"ABEFHIKL":{"1A":"E","1B":"I","1D":"B","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"ABEFHIJL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"H","1K":"L","1L":"I"},"ABEFHIJK":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"H","1K":"I","1L":"K"},"ABEFGJKL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"ABEFGIKL":{"1A":"E","1B":"G","1D":"B","1E":"A","1G":"I","1I":"F","1K":"L","1L":"K"},"ABEFGIJL":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"I"},"ABEFGIJK":{"1A":"E","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"I","1L":"K"},"ABEFGHKL":{"1A":"E","1B":"G","1D":"B","1E":"F","1G":"A","1I":"H","1K":"L","1L":"K"},"ABEFGHJL":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"E"},"ABEFGHJK":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"E","1L":"K"},"ABEFGHIL":{"1A":"E","1B":"G","1D":"B","1E":"F","1G":"A","1I":"H","1K":"L","1L":"I"},"ABEFGHIK":{"1A":"E","1B":"G","1D":"B","1E":"F","1G":"A","1I":"H","1K":"I","1L":"K"},"ABEFGHIJ":{"1A":"H","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"E","1L":"I"},"ABDHIJKL":{"1A":"I","1B":"J","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ABDGIJKL":{"1A":"I","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ABDGHJKL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ABDGHIKL":{"1A":"I","1B":"G","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ABDGHIJL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"I"},"ABDGHIJK":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"I","1L":"K"},"ABDFIJKL":{"1A":"I","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDFHJKL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDFHIKL":{"1A":"H","1B":"I","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDFHIJL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABDFHIJK":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABDFGJKL":{"1A":"F","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ABDFGIKL":{"1A":"I","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDFGIJL":{"1A":"F","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"I"},"ABDFGIJK":{"1A":"F","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"I","1L":"K"},"ABDFGHKL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDFGHJL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"J"},"ABDFGHJK":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"J","1L":"K"},"ABDFGHIL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABDFGHIK":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABDFGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"J"},"ABDEIJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"I","1I":"D","1K":"L","1L":"K"},"ABDEHJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ABDEHIKL":{"1A":"E","1B":"I","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ABDEHIJL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"I"},"ABDEHIJK":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"H","1K":"I","1L":"K"},"ABDEGJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ABDEGIKL":{"1A":"E","1B":"G","1D":"B","1E":"A","1G":"I","1I":"D","1K":"L","1L":"K"},"ABDEGIJL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"I"},"ABDEGIJK":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"I","1L":"K"},"ABDEGHKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"K"},"ABDEGHJL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"E"},"ABDEGHJK":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"E","1L":"K"},"ABDEGHIL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"H","1K":"L","1L":"I"},"ABDEGHIK":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"H","1K":"I","1L":"K"},"ABDEGHIJ":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"E","1L":"I"},"ABDEFJKL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDEFIKL":{"1A":"E","1B":"I","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDEFIJL":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABDEFIJK":{"1A":"E","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABDEFHKL":{"1A":"H","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDEFHJL":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ABDEFHJK":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ABDEFHIL":{"1A":"H","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABDEFHIK":{"1A":"H","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABDEFHIJ":{"1A":"H","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ABDEFGKL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABDEFGJL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"J"},"ABDEFGJK":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"J","1L":"K"},"ABDEFGIL":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABDEFGIK":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABDEFGIJ":{"1A":"E","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"J"},"ABDEFGHL":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ABDEFGHK":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ABDEFGHJ":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"J"},"ABDEFGHI":{"1A":"H","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ABCHIJKL":{"1A":"I","1B":"J","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ABCGIJKL":{"1A":"I","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"K"},"ABCGHJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"K"},"ABCGHIKL":{"1A":"I","1B":"G","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ABCGHIJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"I"},"ABCGHIJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"I","1L":"K"},"ABCFIJKL":{"1A":"I","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCFHJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCFHIKL":{"1A":"H","1B":"I","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCFHIJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCFHIJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCFGJKL":{"1A":"C","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"K"},"ABCFGIKL":{"1A":"I","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCFGIJL":{"1A":"C","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"L","1L":"I"},"ABCFGIJK":{"1A":"C","1B":"J","1D":"B","1E":"F","1G":"A","1I":"G","1K":"I","1L":"K"},"ABCFGHKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCFGHJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"J"},"ABCFGHJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"J","1L":"K"},"ABCFGHIL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCFGHIK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCFGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"J"},"ABCEIJKL":{"1A":"E","1B":"J","1D":"B","1E":"A","1G":"I","1I":"C","1K":"L","1L":"K"},"ABCEHJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ABCEHIKL":{"1A":"E","1B":"I","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ABCEHIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"I"},"ABCEHIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"H","1K":"I","1L":"K"},"ABCEGJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"K"},"ABCEGIKL":{"1A":"E","1B":"G","1D":"B","1E":"A","1G":"I","1I":"C","1K":"L","1L":"K"},"ABCEGIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"I"},"ABCEGIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"I","1L":"K"},"ABCEGHKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"K"},"ABCEGHJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"L","1L":"E"},"ABCEGHJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"E","1L":"K"},"ABCEGHIL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"H","1K":"L","1L":"I"},"ABCEGHIK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"H","1K":"I","1L":"K"},"ABCEGHIJ":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"G","1K":"E","1L":"I"},"ABCEFJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCEFIKL":{"1A":"E","1B":"I","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCEFIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCEFIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCEFHKL":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCEFHJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"E"},"ABCEFHJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"E","1L":"K"},"ABCEFHIL":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCEFHIK":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCEFHIJ":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"E","1L":"I"},"ABCEFGKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCEFGJL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"J"},"ABCEFGJK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"J","1L":"K"},"ABCEFGIL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCEFGIK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCEFGIJ":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"I","1L":"J"},"ABCEFGHL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"L","1L":"E"},"ABCEFGHK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"E","1L":"K"},"ABCEFGHJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"E","1L":"J"},"ABCEFGHI":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"E","1L":"I"},"ABCDIJKL":{"1A":"I","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDHJKL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDHIKL":{"1A":"H","1B":"I","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDHIJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDHIJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDGJKL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"K"},"ABCDGIKL":{"1A":"I","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDGIJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"L","1L":"I"},"ABCDGIJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"G","1K":"I","1L":"K"},"ABCDGHKL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDGHJL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"J"},"ABCDGHJK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"J","1L":"K"},"ABCDGHIL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDGHIK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDGHIJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"J"},"ABCDFJKL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCDFIKL":{"1A":"C","1B":"I","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCDFIJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCDFIJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCDFHKL":{"1A":"H","1B":"F","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDFHJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"H"},"ABCDFHJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ABCDFHIL":{"1A":"H","1B":"F","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDFHIK":{"1A":"H","1B":"F","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDFHIJ":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ABCDFGKL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCDFGJL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"J"},"ABCDFGJK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"J","1L":"K"},"ABCDFGIL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCDFGIK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCDFGIJ":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"J"},"ABCDFGHL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"H"},"ABCDFGHK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ABCDFGHJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"J"},"ABCDFGHI":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ABCDEJKL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDEIKL":{"1A":"E","1B":"I","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDEIJL":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDEIJK":{"1A":"E","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDEHKL":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDEHJL":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ABCDEHJK":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"E","1L":"K"},"ABCDEHIL":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDEHIK":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDEHIJ":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"D","1K":"E","1L":"I"},"ABCDEGKL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"K"},"ABCDEGJL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"J"},"ABCDEGJK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"J","1L":"K"},"ABCDEGIL":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"I"},"ABCDEGIK":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"K"},"ABCDEGIJ":{"1A":"E","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"I","1L":"J"},"ABCDEGHL":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ABCDEGHK":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"E","1L":"K"},"ABCDEGHJ":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"E","1L":"J"},"ABCDEGHI":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"D","1K":"E","1L":"I"},"ABCDEFKL":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"K"},"ABCDEFJL":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ABCDEFJK":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ABCDEFIL":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"I"},"ABCDEFIK":{"1A":"C","1B":"E","1D":"B","1E":"D","1G":"A","1I":"F","1K":"I","1L":"K"},"ABCDEFIJ":{"1A":"C","1B":"J","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ABCDEFHL":{"1A":"H","1B":"F","1D":"B","1E":"C","1G":"A","1I":"D","1K":"L","1L":"E"},"ABCDEFHK":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"K"},"ABCDEFHJ":{"1A":"H","1B":"J","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"E"},"ABCDEFHI":{"1A":"H","1B":"E","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"I"},"ABCDEFGL":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"L","1L":"E"},"ABCDEFGK":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"K"},"ABCDEFGJ":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"J"},"ABCDEFGI":{"1A":"C","1B":"G","1D":"B","1E":"D","1G":"A","1I":"F","1K":"E","1L":"I"},"ABCDEFGH":{"1A":"H","1B":"G","1D":"B","1E":"C","1G":"A","1I":"F","1K":"D","1L":"E"}}
+;
+
+// ==================== 32强对阵（官方时间顺序）====================
+const R32_SCHEDULE = [
+    { num:"M73", date:"6月29日", time:"03:00", s1:{type:"R",g:"A"}, s2:{type:"R",g:"B"} },
+    { num:"M76", date:"6月30日", time:"01:00", s1:{type:"W",g:"C"}, s2:{type:"R",g:"F"} },
+    { num:"M74", date:"6月30日", time:"04:30", s1:{type:"W",g:"E"}, s2:{type:"T",winner:"1E"} },
+    { num:"M75", date:"6月30日", time:"09:00", s1:{type:"W",g:"F"}, s2:{type:"R",g:"C"} },
+    { num:"M78", date:"7月1日",  time:"01:00", s1:{type:"R",g:"E"}, s2:{type:"R",g:"I"} },
+    { num:"M77", date:"7月1日",  time:"05:00", s1:{type:"W",g:"I"}, s2:{type:"T",winner:"1I"} },
+    { num:"M79", date:"7月1日",  time:"09:00", s1:{type:"W",g:"A"}, s2:{type:"T",winner:"1A"} },
+    { num:"M80", date:"7月2日",  time:"00:00", s1:{type:"W",g:"L"}, s2:{type:"T",winner:"1L"} },
+    { num:"M82", date:"7月2日",  time:"04:00", s1:{type:"W",g:"G"}, s2:{type:"T",winner:"1G"} },
+    { num:"M81", date:"7月2日",  time:"08:00", s1:{type:"W",g:"D"}, s2:{type:"T",winner:"1D"} },
+    { num:"M84", date:"7月3日",  time:"03:00", s1:{type:"W",g:"H"}, s2:{type:"R",g:"J"} },
+    { num:"M83", date:"7月3日",  time:"07:00", s1:{type:"R",g:"K"}, s2:{type:"R",g:"L"} },
+    { num:"M85", date:"7月3日",  time:"11:00", s1:{type:"W",g:"B"}, s2:{type:"T",winner:"1B"} },
+    { num:"M88", date:"7月4日",  time:"02:00", s1:{type:"R",g:"D"}, s2:{type:"R",g:"G"} },
+    { num:"M86", date:"7月4日",  time:"06:00", s1:{type:"W",g:"J"}, s2:{type:"R",g:"H"} },
+    { num:"M87", date:"7月4日",  time:"09:30", s1:{type:"W",g:"K"}, s2:{type:"T",winner:"1K"} },
+];
+
+// ==================== 16强/八强/半决赛对阵（官方规则）====================
+const R16_DEF = [
+    { num:"M90", date:"7月5日",  time:"01:00", src1:"M73", src2:"M75" },
+    { num:"M89", date:"7月5日",  time:"05:00", src1:"M74", src2:"M77" },
+    { num:"M91", date:"7月6日",  time:"04:00", src1:"M76", src2:"M78" },
+    { num:"M92", date:"7月6日",  time:"08:00", src1:"M79", src2:"M80" },
+    { num:"M93", date:"7月7日",  time:"03:00", src1:"M83", src2:"M84" },
+    { num:"M94", date:"7月7日",  time:"08:00", src1:"M81", src2:"M82" },
+    { num:"M95", date:"7月8日",  time:"00:00", src1:"M86", src2:"M88" },
+    { num:"M96", date:"7月8日",  time:"04:00", src1:"M85", src2:"M87" },
+];
+const QF_DEF = [
+    { num:"M97",  date:"7月10日", time:"04:00", src1:"M89", src2:"M90" },
+    { num:"M98",  date:"7月11日", time:"03:00", src1:"M93", src2:"M94" },
+    { num:"M99",  date:"7月12日", time:"05:00", src1:"M91", src2:"M92" },
+    { num:"M100", date:"7月12日", time:"09:00", src1:"M95", src2:"M96" },
+];
+const SF_DEF = [
+    { num:"M101", date:"7月15日", time:"03:00", src1:"M97",  src2:"M98"  },
+    { num:"M102", date:"7月16日", time:"03:00", src1:"M99",  src2:"M100" },
+];
+const FINAL_DEF = { num:"M103", date:"7月20日", time:"03:00", src1:"M101", src2:"M102" };
+
+// ==================== State ====================
+let selections = { groups:{}, thirdPlaced:[], r32Winners:{}, r16Winners:{}, qfWinners:{}, sfWinners:{}, finalWinner:null };
+let currentStep = 1;
+
+// ==================== Helpers ====================
+function getTeamByName(name) {
+    for (const g of Object.keys(groupsData)) {
+        const t = groupsData[g].find(t => t.name === name);
+        if (t) return { ...t, group:g };
+    }
+    return null;
+}
+function getGroupTeam(g, rank) {
+    const arr = selections.groups[g] || [];
+    if (arr.length <= rank) return null;
+    return getTeamByName(arr[rank]);
+}
+function buildThirdAssignment() {
+    const key = [...selections.thirdPlaced].sort().join('');
+    return THIRD_MAP[key] || {};
+}
+function resolveSlot(slot, ta) {
+    if (slot.type==='W') return getGroupTeam(slot.g,0);
+    if (slot.type==='R') return getGroupTeam(slot.g,1);
+    if (slot.type==='T') { const tg=ta[slot.winner]; return tg?getGroupTeam(tg,2):null; }
+    return null;
+}
+function getMatchWinner(matchNum) {
+    const w = selections.r32Winners[matchNum] || selections.r16Winners[matchNum]
+            || selections.qfWinners[matchNum] || selections.sfWinners[matchNum];
+    return w ? (getTeamByName(w)||{name:w,flag:''}) : null;
+}
+function slotLabel(slot, ta) {
+    if (slot.type==='W') return slot.g+'组第一';
+    if (slot.type==='R') return slot.g+'组第二';
+    if (slot.type==='T') { const tg=ta[slot.winner]; return tg?tg+'组第三':'待定'; }
+    return '';
+}
+function flagImg(t) {
+    if (!t||!t.flag) return '<span style="width:30px;display:inline-block"></span>';
+    return `<img class="mflag" src="${t.flag}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+}
+
+// ==================== STEP 1 ====================
+function renderStep1() {
+    const c = document.getElementById('steps');
+    c.innerHTML = `<div class="step-title">第一步：为每个小组排出前三名</div>
+        <div class="step-desc">点击球队依次选出第 1、2、3 名，第 4 名自动确定</div>
+        <div class="groups-grid" id="groupsGrid"></div>`;
+    const grid = document.getElementById('groupsGrid');
+    Object.keys(groupsData).forEach(g => {
+        const div = document.createElement('div');
+        div.className = 'group';
+        div.innerHTML = `<h3>📍 ${g}组</h3><div id="list-${g}"></div>`;
+        grid.appendChild(div);
+        const list = document.getElementById(`list-${g}`);
+        groupsData[g].forEach((team,i) => {
+            const el = document.createElement('div');
+            el.className = 'team'; el.id = `team-${g}-${i}`;
+            el.innerHTML = `<img class="team-flag" src="${team.flag}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+                <span class="team-name">${team.name}</span>
+                <span class="position" id="pos-${g}-${team.name}"></span>`;
+            el.onclick = () => toggleSelection(g, team.name);
+            list.appendChild(el);
+        });
+        refreshGroup(g);
+    });
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('nextBtn').textContent = '下一步 →';
+}
+function toggleSelection(group, teamName) {
+    if (!selections.groups[group]) selections.groups[group] = [];
+    const arr = selections.groups[group];
+    const idx = arr.indexOf(teamName);
+    if (idx > -1) arr.splice(idx,1);
+    else if (arr.length < 3) arr.push(teamName);
+    refreshGroup(group);
+}
+function refreshGroup(group) {
+    const arr = selections.groups[group] || [];
+    groupsData[group].forEach((team,i) => {
+        const posEl = document.getElementById(`pos-${group}-${team.name}`);
+        const teamEl = document.getElementById(`team-${group}-${i}`);
+        if (!posEl||!teamEl) return;
+        const pos = arr.indexOf(team.name);
+        teamEl.classList.remove('selected-1','selected-2','selected-3');
+        posEl.textContent = '';
+        if (pos===0) { posEl.textContent='第1'; teamEl.classList.add('selected-1'); }
+        else if (pos===1) { posEl.textContent='第2'; teamEl.classList.add('selected-2'); }
+        else if (pos===2) { posEl.textContent='第3'; teamEl.classList.add('selected-3'); }
+        else if (arr.length===3 && !arr.includes(team.name)) posEl.textContent='第4';
+    });
+}
+
+// ==================== STEP 2 ====================
+function renderStep2() {
+    selections.thirdPlaced = [];
+    const c = document.getElementById('steps');
+    c.innerHTML = `<div class="step-title">第二步：选出 8 支成绩最好的小组第三</div>
+        <div class="step-desc">12 个小组第三名中，将有 8 支晋级 32 强淘汰赛</div>
+        <div class="counter">已选择 <span id="tcnt">0</span> / 8 支</div>
+        <div style="padding:0 16px 16px" id="thirds-list"></div>`;
+    const list = document.getElementById('thirds-list');
+    Object.keys(groupsData).forEach(g => {
+        const arr = selections.groups[g]||[];
+        const thirdName = arr[2]; if (!thirdName) return;
+        const team = groupsData[g].find(t=>t.name===thirdName); if (!team) return;
+        const div = document.createElement('div');
+        div.className='third-item'; div.id=`third-${g}`;
+        div.innerHTML = `<span class="grp-badge">${g}组</span>
+            <img class="mflag" src="${team.flag}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span style="font-size:15px;font-weight:600;flex:1;margin-left:8px">${team.name}</span>
+            <span class="check-icon" id="chk-${g}" style="display:none">✓</span>`;
+        div.onclick = () => toggleThird(g);
+        list.appendChild(div);
+    });
+    updateThirdCounter();
+}
+function toggleThird(g) {
+    const idx = selections.thirdPlaced.indexOf(g);
+    if (idx>-1) selections.thirdPlaced.splice(idx,1);
+    else { if (selections.thirdPlaced.length>=8) return; selections.thirdPlaced.push(g); }
+    updateThirdCounter();
+    Object.keys(groupsData).forEach(grp => {
+        const el=document.getElementById(`third-${grp}`);
+        const chk=document.getElementById(`chk-${grp}`);
+        if (!el) return;
+        const sel=selections.thirdPlaced.includes(grp);
+        el.classList.toggle('sel',sel);
+        if (chk) chk.style.display=sel?'inline':'none';
+    });
+}
+function updateThirdCounter() {
+    const cnt=selections.thirdPlaced.length;
+    const el=document.getElementById('tcnt'); if (el) el.textContent=cnt;
+    document.getElementById('nextBtn').disabled=cnt!==8;
+}
+
+// ==================== STEP 3: 32强 ====================
+function renderStep3() {
+    const ta = buildThirdAssignment();
+    const decided = Object.keys(selections.r32Winners).length;
+    const c = document.getElementById('steps');
+    c.innerHTML = `<div class="step-title">第三步：32 强淘汰赛</div>
+        <div class="step-desc">点击选出每场胜者 · 已预测 <span id="r32cnt">${decided}</span> / 16 场</div>
+        <div class="r32-wrapper"><div class="r32-grid" id="r32grid"></div></div>`;
+    const grid = document.getElementById('r32grid');
+    R32_SCHEDULE.forEach(match => {
+        const t1=resolveSlot(match.s1,ta), t2=resolveSlot(match.s2,ta);
+        const w=selections.r32Winners[match.num];
+        const t1w=w&&t1&&w===t1.name, t2w=w&&t2&&w===t2.name;
+        const lbl1=slotLabel(match.s1,ta), lbl2=slotLabel(match.s2,ta);
+        const card=document.createElement('div'); card.className='match-card';
+        card.innerHTML=`<div class="match-header">
+                <span class="match-num-badge">${match.num}</span>
+                <span>${match.date} 北京时间${match.time}</span>
+            </div>
+            <div class="match-team-row ${t1w?'winner':(w?'loser':'')}" onclick="pickR32('${match.num}',0)">
+                <span class="slot-label">${lbl1}</span>${flagImg(t1)}
+                <span class="mname">${t1?t1.name:'待定'}</span>${t1w?'<span class="mcrown">👑</span>':''}
+            </div><div class="match-divider"></div>
+            <div class="match-team-row ${t2w?'winner':(w?'loser':'')}" onclick="pickR32('${match.num}',1)">
+                <span class="slot-label">${lbl2}</span>${flagImg(t2)}
+                <span class="mname">${t2?t2.name:'待定'}</span>${t2w?'<span class="mcrown">👑</span>':''}
+            </div>`;
+        grid.appendChild(card);
+    });
+    document.getElementById('nextBtn').disabled=decided<16;
+}
+function pickR32(num,ti) {
+    const match=R32_SCHEDULE.find(m=>m.num===num); if (!match) return;
+    const ta=buildThirdAssignment();
+    const t=ti===0?resolveSlot(match.s1,ta):resolveSlot(match.s2,ta); if (!t) return;
+    if (selections.r32Winners[num]===t.name) delete selections.r32Winners[num];
+    else selections.r32Winners[num]=t.name;
+    renderStep3();
+}
+
+// ==================== STEPS 4-7 (官方对阵) ====================
+function pickKO(matchNum, side) {
+    const allDefs=[...R16_DEF,...QF_DEF,...SF_DEF];
+    const def=allDefs.find(d=>d.num===matchNum); if (!def) return;
+    const t1=getMatchWinner(def.src1), t2=getMatchWinner(def.src2);
+    if (!t1||!t2) return;
+    const team=side==='t1'?t1:t2;
+    const store=R16_DEF.find(d=>d.num===matchNum)?selections.r16Winners
+               :QF_DEF.find(d=>d.num===matchNum)?selections.qfWinners
+               :selections.sfWinners;
+    if (store[matchNum]===team.name) delete store[matchNum];
+    else store[matchNum]=team.name;
+    renderCurrentStep();
+}
+
+function makeKOCard(def, store) {
+    const t1=getMatchWinner(def.src1), t2=getMatchWinner(def.src2);
+    const w=store[def.num];
+    const t1w=w&&t1&&w===t1.name, t2w=w&&t2&&w===t2.name;
+    const canPick=!!(t1&&t2);
+    const card=document.createElement('div'); card.className='match-card';
+    card.innerHTML=`<div class="match-header">
+            <span class="match-num-badge">${def.num}</span>
+            <span>${def.date} 北京时间${def.time}</span>
+        </div>
+        <div class="match-team-row ${t1w?'winner':(w?'loser':'')}" ${canPick?`onclick="pickKO('${def.num}','t1')"`:''} style="${!t1?'opacity:.4':''}">
+            ${flagImg(t1)}<span class="mname" style="margin-left:${t1?'0':'30px'}">${t1?t1.name:'待定'}</span>
+            ${t1w?'<span class="mcrown">👑</span>':''}
+        </div><div class="match-divider"></div>
+        <div class="match-team-row ${t2w?'winner':(w?'loser':'')}" ${canPick?`onclick="pickKO('${def.num}','t2')"`:''} style="${!t2?'opacity:.4':''}">
+            ${flagImg(t2)}<span class="mname" style="margin-left:${t2?'0':'30px'}">${t2?t2.name:'待定'}</span>
+            ${t2w?'<span class="mcrown">👑</span>':''}
+        </div>`;
+    return card;
+}
+
+function renderKORound(title, defs, store, total) {
+    const done=Object.keys(store).length;
+    const c=document.getElementById('steps');
+    c.innerHTML=`<div class="step-title">${title}</div>
+        <div class="step-desc">点击选出每场胜者 · 已预测 <span id="kodone">${done}</span> / ${total} 场</div>
+        <div class="r32-wrapper"><div class="r32-grid" id="kogrid"></div></div>`;
+    const grid=document.getElementById('kogrid');
+    defs.forEach(def=>grid.appendChild(makeKOCard(def,store)));
+    document.getElementById('nextBtn').disabled=done<total;
+    document.getElementById('nextBtn').textContent='下一步 →';
+}
+
+function renderStep4() { renderKORound('第四步：16强淘汰赛',R16_DEF,selections.r16Winners,8); }
+function renderStep5() { renderKORound('第五步：八强（1/4决赛）',QF_DEF,selections.qfWinners,4); }
+function renderStep6() { renderKORound('第六步：四强（半决赛）',SF_DEF,selections.sfWinners,2); }
+
+function renderStep7() {
+    const t1=getMatchWinner(FINAL_DEF.src1), t2=getMatchWinner(FINAL_DEF.src2);
+    const fw=selections.finalWinner;
+    const t1w=fw&&t1&&fw===t1.name, t2w=fw&&t2&&fw===t2.name;
+    const c=document.getElementById('steps');
+    c.innerHTML=`<div class="step-title">第七步：决赛 🏆</div>
+        <div class="step-desc">${FINAL_DEF.date} 北京时间${FINAL_DEF.time} · 选出你心目中的 2026 世界杯冠军！</div>
+        <div class="r32-wrapper" style="max-width:460px;margin:0 auto">
+            <div class="match-card" style="border:2px solid rgba(255,215,0,0.5)">
+                <div class="match-header" style="background:rgba(255,215,0,0.2);justify-content:center;font-size:14px">🏆 2026 FIFA 世界杯 · 决赛 🏆</div>
+                <div class="match-team-row ${t1w?'winner':(fw?'loser':'')}" onclick="pickFinal('t1')" style="padding:15px 18px">
+                    ${flagImg(t1)}<span class="mname" style="font-size:17px;margin-left:${t1?'0':'30px'}">${t1?t1.name:'待定'}</span>
+                    ${t1w?'<span class="mcrown" style="font-size:20px">👑</span>':''}
+                </div>
+                <div style="text-align:center;padding:3px;font-size:11px;color:#555;letter-spacing:4px">VS</div>
+                <div class="match-team-row ${t2w?'winner':(fw?'loser':'')}" onclick="pickFinal('t2')" style="padding:15px 18px">
+                    ${flagImg(t2)}<span class="mname" style="font-size:17px;margin-left:${t2?'0':'30px'}">${t2?t2.name:'待定'}</span>
+                    ${t2w?'<span class="mcrown" style="font-size:20px">👑</span>':''}
+                </div>
+            </div>
+            ${fw?`<div style="text-align:center;margin-top:18px;padding:14px;background:rgba(255,215,0,0.15);border-radius:12px;border:1px solid rgba(255,215,0,0.4)">
+                <div style="font-size:12px;color:#aaa;margin-bottom:4px">我预测的冠军</div>
+                <div style="font-size:22px;font-weight:900;color:#ffd700">${fw} 🏆</div></div>`:''}
+        </div>`;
+    window._finalT=[t1,t2];
+    const nb=document.getElementById('nextBtn');
+    nb.disabled=!fw;
+    nb.textContent=fw?'生成预测图 🏆':'下一步 →';
+    if (fw) nb.onclick=showResult; else nb.onclick=nextStep;
+}
+function pickFinal(side) {
+    const [t1,t2]=window._finalT||[null,null]; if (!t1||!t2) return;
+    const team=side==='t1'?t1:t2;
+    if (selections.finalWinner===team.name) selections.finalWinner=null;
+    else selections.finalWinner=team.name;
+    renderStep7();
+}
+
+// ==================== Navigation ====================
+function nextStep() {
+    if (currentStep===1) {
+        const inc=Object.keys(groupsData).filter(g=>(selections.groups[g]||[]).length<3);
+        if (inc.length>0) { alert('请完成以下小组的排名：'+inc.join('、')+'组'); return; }
+    }
+    if (currentStep===2&&selections.thirdPlaced.length!==8) return;
+    if (currentStep===3&&Object.keys(selections.r32Winners).length<16) return;
+    if (currentStep===4&&Object.keys(selections.r16Winners).length<8) return;
+    if (currentStep===5&&Object.keys(selections.qfWinners).length<4) return;
+    if (currentStep===6&&Object.keys(selections.sfWinners).length<2) return;
+    currentStep=Math.min(7,currentStep+1);
+    document.getElementById('stepNum').textContent=currentStep;
+    renderCurrentStep();
+}
+function prevStep() {
+    if (currentStep<=1) return;
+    currentStep--;
+    document.getElementById('stepNum').textContent=currentStep;
+    const nb=document.getElementById('nextBtn');
+    nb.textContent='下一步 →'; nb.onclick=nextStep;
+    renderCurrentStep();
+}
+function renderCurrentStep() {
+    if (currentStep===1) renderStep1();
+    else if (currentStep===2) renderStep2();
+    else if (currentStep===3) renderStep3();
+    else if (currentStep===4) renderStep4();
+    else if (currentStep===5) renderStep5();
+    else if (currentStep===6) renderStep6();
+    else if (currentStep===7) renderStep7();
+}
+
+// ==================== 结果图（1920×1920 正方形）====================
+function showResult() {
+    document.getElementById('btnRow').style.display = 'none';
+    const c = document.getElementById('steps');
+    c.innerHTML = `
+        <div id="resultWrap" style="padding:20px;">
+            <div class="step-title" style="font-size:2.1em;margin-bottom:15px;">🏆 我的世界杯预测</div>
+            <div style="text-align:center;">
+                <canvas id="resultCanvas" width="1920" height="1920" 
+                        style="max-width:100%;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.8);"></canvas>
+            </div>
+            <div class="result-actions" style="margin-top:20px;">
+                <button onclick="downloadCanvas()">⬇ 保存图片</button>
+                <button class="secondary" onclick="restartGame()">🔄 重新预测</button>
+            </div>
+        </div>`;
+    setTimeout(drawNewBracket, 150);
+}
+
+async function drawNewBracket() {
+    const canvas = document.getElementById('resultCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    const W = 1920;
+    const H = 1920;
+
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
+    }
+
+    const [logo, qr, cup] = await Promise.all([
+        loadImage("logo.png"),
+        loadImage("QR.png"),
+        loadImage("cup.png")
+    ]);
+
+    // ====================
+    // 背景
+    // ====================
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+
+    bg.addColorStop(0, "#081a34");
+    bg.addColorStop(0.5, "#12345f");
+    bg.addColorStop(1, "#1f4a78");
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // ====================
+    // 顶部横幅
+    // ====================
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(0, 0, W, 250);
+
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#ffd700";
+    ctx.font = "900 120px Microsoft YaHei";
+    ctx.fillText("玩转世界杯", W / 2, 120);
+
+    ctx.fillStyle = "#fff3b0";
+    ctx.font = "900 110px Microsoft YaHei";
+    ctx.fillText("决战到巅峰", W / 2, 225);
+
+    ctx.drawImage(logo, W - 250, 30, 190, 190);
+
+    // ====================
+    // 淘汰赛树背景
+    // ====================
+    const treeTop = 290;
+    const treeHeight = 720;
+
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fillRect(70, treeTop, W - 140, treeHeight);
+
+    ctx.strokeStyle = "rgba(255,215,0,0.35)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(70, treeTop, W - 140, treeHeight);
+
+    drawTournamentBracket(
+        ctx,
+        100,
+        treeTop + 40,
+        W - 200,
+        treeHeight - 80
+    );
+
+    // ====================
+    // 冠军展示区
+    // ====================
+    const champion = selections.finalWinner;
+
+    if (champion) {
+
+        const team = getTeamByName(champion);
+
+        ctx.drawImage(cup, W/2 - 90, 560, 180, 220);
+
+        if (team && team.flag) {
+
+            try {
+
+                const flagImg = await loadImage(team.flag);
+
+                ctx.drawImage(
+                    flagImg,
+                    W/2 - 75,
+                    800,
+                    150,
+                    100
+                );
+
+            } catch(e) {}
+
+        }
+
+        ctx.fillStyle = "#ffd700";
+        ctx.font = "900 68px Microsoft YaHei";
+        ctx.fillText(champion, W/2, 970);
+
+        ctx.fillStyle = "#fff3b0";
+        ctx.font = "900 38px Microsoft YaHei";
+        ctx.fillText("世界杯冠军预测", W/2, 1030);
+    }
+
+    // ====================
+    // 二维码区
+    // ====================
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 60px Microsoft YaHei";
+    ctx.fillText("你也想预测？", W/2, 1130);
+
+    ctx.font = "900 52px Microsoft YaHei";
+    ctx.fillText("快扫二维码！", W/2, 1200);
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillRect(
+        W/2 - 150,
+        1250,
+        300,
+        300
+    );
+
+    ctx.drawImage(
+        qr,
+        W/2 - 130,
+        1270,
+        260,
+        260
+    );
+
+    // ====================
+    // 底部宣传区
+    // ====================
+    ctx.fillStyle = "#ffd700";
+
+    ctx.font = "900 72px Microsoft YaHei";
+    ctx.fillText(
+        "截图发朋友圈/微信群",
+        W/2,
+        1670
+    );
+
+    ctx.fillText(
+        "成绩最好者可获大奖！",
+        W/2,
+        1760
+    );
+
+    ctx.strokeStyle = "rgba(255,215,0,0.5)";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.moveTo(300, 1820);
+    ctx.lineTo(1620, 1820);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = "34px Microsoft YaHei";
+
+    ctx.fillText(
+        "2026 FIFA World Cup Predictor",
+        W/2,
+        1880
+    );
+}
+
+function downloadCanvas() {
+    const canvas = document.getElementById('resultCanvas');
+    if (!canvas) return;
+    canvas.toBlob((blob) => {
+        const a = document.createElement('a');
+        a.download = '我的世界杯预测.png';
+        a.href = URL.createObjectURL(blob);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }, 'image/png', 1.0);
+}
+
+function restartGame() {
+    if (!confirm('确定重新预测吗？所有进度将清空。')) return;
+    selections = {groups:{}, thirdPlaced:[], r32Winners:{}, r16Winners:{}, qfWinners:{}, sfWinners:{}, finalWinner:null};
+    currentStep = 1;
+    document.getElementById('stepNum').textContent = 1;
+    document.getElementById('btnRow').style.display = '';
+    renderStep1();
+}
+
+// Init
+renderStep1();
+</script>
+</body>
+</html>
