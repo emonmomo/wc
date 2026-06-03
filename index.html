@@ -12,7 +12,7 @@
         .header-inner { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; gap:10px; }
         .header-trophy { font-size:1.8em; flex-shrink:0; line-height:1; }
         .header-titles { display:flex; flex-direction:column; align-items:center; gap:1px; flex:1; min-width:0; }
-        .header-line1 { color:#ffd700; font-size:clamp(0.95em,3.2vw,1.25em); font-weight:900; letter-spacing:1px; line-height:1.25; white-space:nowrap; }
+        .header-line1 { color:#ffd700; font-size:clamp(0.95em,3.2vw,1.25em); font-weight:900; letter-spacing:1px; line-height:1.25; white-space:nowrap; }   
         .header-line2 { color:#ffc; font-size:clamp(0.95em,3.2vw,1.25em); font-weight:900; letter-spacing:1px; line-height:1.25; white-space:nowrap; }
         .header-bird { width:52px; height:52px; object-fit:contain; flex-shrink:0; }
         .progress { text-align:center; font-size:18px; padding:12px; background:rgba(0,0,0,0.4); font-weight:bold; }
@@ -450,220 +450,350 @@ function renderCurrentStep() {
     else if (currentStep===7) renderStep7();
 }
 
-// ==================== 结果图（1920×1920 正方形）====================
+// ==================== 结果图（Canvas）====================
 function showResult() {
-    document.getElementById('btnRow').style.display = 'none';
-    const c = document.getElementById('steps');
-    c.innerHTML = `
-        <div id="resultWrap" style="padding:20px;">
-            <div class="step-title" style="font-size:2.1em;margin-bottom:15px;">🏆 我的世界杯预测</div>
-            <div style="text-align:center;">
-                <canvas id="resultCanvas" width="1920" height="1920" 
-                        style="max-width:100%;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.8);"></canvas>
-            </div>
-            <div class="result-actions" style="margin-top:20px;">
-                <button onclick="downloadCanvas()">⬇ 保存图片</button>
-                <button class="secondary" onclick="restartGame()">🔄 重新预测</button>
-            </div>
-        </div>`;
-    setTimeout(drawNewBracket, 150);
+    document.getElementById('btnRow').style.display='none';
+    const c=document.getElementById('steps');
+    c.innerHTML=`<div id="resultWrap">
+        <div class="step-title">🏆 我的淘汰赛预测图</div>
+        <div style="text-align:center;padding:0 14px 8px">
+            <canvas id="resultCanvas"></canvas>
+        </div>
+        <div class="result-actions">
+            <button onclick="downloadCanvas()">⬇ 保存图片</button>
+            <button class="secondary" onclick="restartGame()">🔄 重新预测</button>
+        </div>
+    </div>`;
+    setTimeout(drawBracket, 80);
 }
 
-async function drawNewBracket() {
+function drawBracket() {
     const canvas = document.getElementById('resultCanvas');
     if (!canvas) return;
 
+    // ── Layout: 1920px wide, height dynamic ──
+    const W = 1920;
+
+    // Bracket scaling — 1.5× from base
+    const SCALE  = 1.5;
+    const GAP    = Math.round(6  * SCALE);   // 9
+    const MH     = Math.round(52 * SCALE);   // 78  — match block height
+    const UNIT   = Math.round(66 * SCALE);   // 99  — vertical step
+    const N      = 8;                         // R32 matches per side
+
+    // Center column wider to hold cup + final + champion + QR
+    const CTR_W  = Math.round(340 * SCALE);  // 510
+    const COL    = Math.floor((W - CTR_W - GAP * 8) / 8); // ≈184
+
+    const Xr32L = 0;
+    const Xr16L = Xr32L + COL + GAP;
+    const XqfL  = Xr16L + COL + GAP;
+    const XsfL  = XqfL  + COL + GAP;
+    const Xctr  = XsfL  + COL + GAP;
+    const XsfR  = Xctr  + CTR_W + GAP;
+    const XqfR  = XsfR  + COL + GAP;
+    const Xr16R = XqfR  + COL + GAP;
+    const Xr32R = Xr16R + COL + GAP;
+    const ctrCX = Xctr + CTR_W / 2;
+
+    // ── Header ──
+    const HEADER_H = 210;
+    const HDR_PAD  = 22;
+
+    // ── Bracket ──
+    const BRACKET_TOP = HEADER_H;
+    const RND_HDR_H   = 42;
+    const BRACKET_PAD = 12;
+
+    const r32Y = i => BRACKET_TOP + RND_HDR_H + BRACKET_PAD + i * UNIT;
+    const r16Y = i => r32Y(i*2) + UNIT/2;
+    const qfY  = i => r16Y(i*2) + UNIT;
+    const sfY  = ()  => qfY(0)  + UNIT;
+
+    // Total bracket content height (left/right side)
+    const BRACKET_CONTENT_H = RND_HDR_H + BRACKET_PAD + N * UNIT;
+    const BRACKET_BOT = BRACKET_TOP + BRACKET_CONTENT_H;
+
+    // ── Center column content (all fits within bracket height) ──
+    // cup:     top of center down ~200px
+    // final:   at sfY()
+    // champ:   sfY() + MH + 20
+    // QR+text: below champ, must fit before BRACKET_BOT
+    const CHAMP_BOX_H  = 130;
+    const champBoxY    = sfY() + MH + 20;
+    const QR_TEXT_Y    = champBoxY + CHAMP_BOX_H + 20;
+    const QR_SZ        = Math.min(200, BRACKET_BOT - QR_TEXT_Y - 120 - 20);
+    // invite text above QR
+    const INVITE_Y     = QR_TEXT_Y;
+    const QR_Y         = INVITE_Y + 130;
+
+    // ── Footer ──
+    const FOOTER_H   = 150;
+    const FOOTER_TOP = BRACKET_BOT;    // footer immediately after bracket, no gap
+
+    // ── Total height ──
+    const H = FOOTER_TOP + FOOTER_H;
+
+    // Canvas — CSS scales it down to fit container
+    canvas.width  = W;
+    canvas.height = H;
+    canvas.style.width  = '100%';
+    canvas.style.height = 'auto';
     const ctx = canvas.getContext('2d');
 
-    const W = 1920;
-    const H = 1920;
-
-    function loadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
-        });
-    }
-
-    const [logo, qr, cup] = await Promise.all([
-        loadImage("logo.png"),
-        loadImage("QR.png"),
-        loadImage("cup.png")
-    ]);
-
-    // ====================
-    // 背景
-    // ====================
+    // ── Background ──
     const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   '#0a1f3d');
+    bg.addColorStop(0.5, '#12284a');
+    bg.addColorStop(1,   '#1e3a5f');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.022)'; ctx.lineWidth = 1;
+    for (let x=0; x<W; x+=60){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y=0; y<H; y+=60){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
-    bg.addColorStop(0, "#081a34");
-    bg.addColorStop(0.5, "#12345f");
-    bg.addColorStop(1, "#1f4a78");
-
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    // ====================
-    // 顶部横幅
-    // ====================
-    ctx.fillStyle = "rgba(0,0,0,0.65)";
-    ctx.fillRect(0, 0, W, 250);
-
-    ctx.textAlign = "center";
-
-    ctx.fillStyle = "#ffd700";
-    ctx.font = "900 120px Microsoft YaHei";
-    ctx.fillText("玩转世界杯", W / 2, 120);
-
-    ctx.fillStyle = "#fff3b0";
-    ctx.font = "900 110px Microsoft YaHei";
-    ctx.fillText("决战到巅峰", W / 2, 225);
-
-    ctx.drawImage(logo, W - 250, 30, 190, 190);
-
-    // ====================
-    // 淘汰赛树背景
-    // ====================
-    const treeTop = 290;
-    const treeHeight = 720;
-
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.fillRect(70, treeTop, W - 140, treeHeight);
-
-    ctx.strokeStyle = "rgba(255,215,0,0.35)";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(70, treeTop, W - 140, treeHeight);
-
-    drawTournamentBracket(
-        ctx,
-        100,
-        treeTop + 40,
-        W - 200,
-        treeHeight - 80
-    );
-
-    // ====================
-    // 冠军展示区
-    // ====================
-    const champion = selections.finalWinner;
-
-    if (champion) {
-
-        const team = getTeamByName(champion);
-
-        ctx.drawImage(cup, W/2 - 90, 560, 180, 220);
-
-        if (team && team.flag) {
-
-            try {
-
-                const flagImg = await loadImage(team.flag);
-
-                ctx.drawImage(
-                    flagImg,
-                    W/2 - 75,
-                    800,
-                    150,
-                    100
-                );
-
-            } catch(e) {}
-
-        }
-
-        ctx.fillStyle = "#ffd700";
-        ctx.font = "900 68px Microsoft YaHei";
-        ctx.fillText(champion, W/2, 970);
-
-        ctx.fillStyle = "#fff3b0";
-        ctx.font = "900 38px Microsoft YaHei";
-        ctx.fillText("世界杯冠军预测", W/2, 1030);
+    // ── Helpers ──
+    function rr(x,y,w,h,r){
+        ctx.beginPath();
+        ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+        ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+        ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+        ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+        ctx.closePath();
     }
 
-    // ====================
-    // 二维码区
-    // ====================
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 60px Microsoft YaHei";
-    ctx.fillText("你也想预测？", W/2, 1130);
+    function drawMatch(x, y, w, t1, t2, winName) {
+        const t1w = winName && t1 && winName===t1.name;
+        const t2w = winName && t2 && winName===t2.name;
+        const hasR = !!winName;
+        const th = MH/2 - 1;
+        const FW = Math.round(38 * SCALE);  // flag width ≈57
+        const FH = th - 8;
+        const FS = Math.round(14 * SCALE);  // font size ≈21
 
-    ctx.font = "900 52px Microsoft YaHei";
-    ctx.fillText("快扫二维码！", W/2, 1200);
+        ctx.fillStyle='rgba(255,255,255,0.07)'; rr(x,y,w,MH,5); ctx.fill();
+        ctx.strokeStyle=hasR?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.12)';
+        ctx.lineWidth=1; rr(x,y,w,MH,5); ctx.stroke();
+        if(t1w){ctx.fillStyle='rgba(0,212,138,0.18)';ctx.fillRect(x+1,y+1,w-2,th);ctx.fillStyle='#00d48a';ctx.fillRect(x,y+1,5,th);}
+        if(t2w){ctx.fillStyle='rgba(0,212,138,0.18)';ctx.fillRect(x+1,y+th+2,w-2,th);ctx.fillStyle='#00d48a';ctx.fillRect(x,y+th+2,5,th);}
+        ctx.strokeStyle='rgba(255,255,255,0.09)'; ctx.lineWidth=0.8;
+        ctx.beginPath(); ctx.moveTo(x+5,y+th+1); ctx.lineTo(x+w-5,y+th+1); ctx.stroke();
 
-    ctx.fillStyle = "#ffffff";
+        function drawRow(team, ty, isW, hasResult) {
+            ctx.globalAlpha = (!hasResult||isW) ? 1 : 0.3;
+            if (team && team._flagImg && team._flagImg.complete && team._flagImg.naturalWidth>0) {
+                try{ ctx.drawImage(team._flagImg, x+5, ty+4, FW, FH); }catch(e){}
+            } else {
+                ctx.fillStyle=isW?'#005535':'#1a2a4a'; ctx.fillRect(x+5,ty+4,FW,FH);
+            }
+            ctx.font=`${isW?'bold ':''}${FS}px "Microsoft YaHei",sans-serif`;
+            ctx.textAlign='left'; ctx.textBaseline='middle';
+            ctx.fillStyle=isW?'#00ff8a':'#e8eeff';
+            const maxChars = Math.floor((w - FW - 20) / (FS*0.65));
+            const nm = team ? team.name : '待定';
+            const label = nm.length > maxChars ? nm.slice(0,maxChars)+'…' : nm;
+            ctx.fillText(label, x+FW+10, ty+th/2);
+            if(isW&&hasResult){
+                ctx.fillStyle='#ffd700'; ctx.font=`${FS}px sans-serif`;
+                ctx.textAlign='right'; ctx.fillText('▲', x+w-5, ty+th/2);
+            }
+            ctx.globalAlpha=1;
+        }
+        drawRow(t1, y,       t1w, hasR);
+        drawRow(t2, y+th+2, t2w, hasR);
+    }
 
-    ctx.fillRect(
-        W/2 - 150,
-        1250,
-        300,
-        300
-    );
+    function conn(x1,y1,x2,y2){
+        ctx.strokeStyle='rgba(80,130,220,0.4)'; ctx.lineWidth=2;
+        const mx=(x1+x2)/2;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(mx,y1); ctx.lineTo(mx,y2); ctx.lineTo(x2,y2); ctx.stroke();
+    }
 
-    ctx.drawImage(
-        qr,
-        W/2 - 130,
-        1270,
-        260,
-        260
-    );
+    // ── HEADER ──
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,HEADER_H);
+    ctx.fillStyle='#c8102e'; ctx.fillRect(0,0,W,8);
+    const hLine=ctx.createLinearGradient(0,0,W,0);
+    hLine.addColorStop(0,'transparent'); hLine.addColorStop(0.25,'#ffd700');
+    hLine.addColorStop(0.75,'#ffd700'); hLine.addColorStop(1,'transparent');
+    ctx.strokeStyle=hLine; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,HEADER_H-2); ctx.lineTo(W,HEADER_H-2); ctx.stroke();
+    ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle='#ffd700';
+    ctx.font='bold 76px "Microsoft YaHei",sans-serif';
+    ctx.fillText('玩转世界杯，', W/2, HDR_PAD+4);
+    ctx.fillStyle='#fff8cc';
+    ctx.fillText('决战到巅峰！', W/2, HDR_PAD+92);
+    // Logo bird top-right
+    const birdImg=new Image(); birdImg.src='logo.png';
+    birdImg.onload=()=>{ ctx.drawImage(birdImg, W-195, 8, 182, 156); };
 
-    // ====================
-    // 底部宣传区
-    // ====================
-    ctx.fillStyle = "#ffd700";
+    // ── BRACKET ROUND HEADERS ──
+    ctx.font='bold 20px "Microsoft YaHei",sans-serif'; ctx.textBaseline='middle';
+    const rhY = BRACKET_TOP + RND_HDR_H/2;
+    [[Xr32L,COL,'1/8决赛',false],[Xr16L,COL,'1/4决赛',false],[XqfL,COL,'半决赛',false],[XsfL,COL,'四强',false],
+     [Xctr,CTR_W,'决 赛',true],
+     [XsfR,COL,'四强',false],[XqfR,COL,'半决赛',false],[Xr16R,COL,'1/4决赛',false],[Xr32R,COL,'1/8决赛',false]]
+    .forEach(([x,w,lb,gold])=>{
+        ctx.fillStyle=gold?'#ffd700':'rgba(140,180,255,0.8)';
+        ctx.textAlign='center'; ctx.fillText(lb, x+w/2, rhY);
+    });
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,BRACKET_TOP+RND_HDR_H); ctx.lineTo(W,BRACKET_TOP+RND_HDR_H); ctx.stroke();
 
-    ctx.font = "900 72px Microsoft YaHei";
-    ctx.fillText(
-        "截图发朋友圈/微信群",
-        W/2,
-        1670
-    );
+    // ── MATCH DATA ──
+    const r32w=selections.r32Winners, r16w=selections.r16Winners;
+    const qfw=selections.qfWinners, sfw=selections.sfWinners;
+    const ta=buildThirdAssignment();
+    function r32Team(mn,side){
+        const m=R32_SCHEDULE.find(x=>x.num===mn); if(!m)return null;
+        return side===0?resolveSlot(m.s1,ta):resolveSlot(m.s2,ta);
+    }
+    function ensureFlag(team){
+        if(!team||!team.flag||team._flagImg)return;
+        const img=new Image(); img.src=team.flag; team._flagImg=img;
+        img.onload=()=>{ if(!window._bpPending){window._bpPending=true;setTimeout(drawBracket,250);} };
+    }
+    window._bpPending=false;
 
-    ctx.fillText(
-        "成绩最好者可获大奖！",
-        W/2,
-        1760
-    );
+    // ── LEFT HALF ──
+    ['M73','M74','M75','M76','M77','M78','M79','M80'].forEach((mn,i)=>{
+        const t1=r32Team(mn,0),t2=r32Team(mn,1);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(Xr32L,r32Y(i),COL,t1,t2,r32w[mn]);
+        conn(Xr32L+COL,r32Y(i)+MH/2,Xr16L,r16Y(Math.floor(i/2))+MH/2);
+    });
+    ['M90','M89','M92','M91'].forEach((mn,i)=>{
+        const def=R16_DEF.find(d=>d.num===mn);
+        const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(Xr16L,r16Y(i),COL,t1,t2,r16w[mn]);
+        conn(Xr16L+COL,r16Y(i)+MH/2,XqfL,qfY(Math.floor(i/2))+MH/2);
+    });
+    ['M97','M99'].forEach((mn,i)=>{
+        const def=QF_DEF.find(d=>d.num===mn);
+        const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(XqfL,qfY(i),COL,t1,t2,qfw[mn]);
+        conn(XqfL+COL,qfY(i)+MH/2,XsfL,sfY()+MH/2);
+    });
+    {const def=SF_DEF.find(d=>d.num==='M101');
+     const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+     ensureFlag(t1);ensureFlag(t2);
+     drawMatch(XsfL,sfY(),COL,t1,t2,sfw['M101']);
+     conn(XsfL+COL,sfY()+MH/2,Xctr,sfY()+MH/2);}
 
-    ctx.strokeStyle = "rgba(255,215,0,0.5)";
-    ctx.lineWidth = 3;
+    // ── RIGHT HALF ──
+    ['M81','M82','M83','M84','M85','M86','M87','M88'].forEach((mn,i)=>{
+        const t1=r32Team(mn,0),t2=r32Team(mn,1);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(Xr32R,r32Y(i),COL,t1,t2,r32w[mn]);
+        conn(Xr32R,r32Y(i)+MH/2,Xr16R+COL,r16Y(Math.floor(i/2))+MH/2);
+    });
+    ['M94','M93','M96','M95'].forEach((mn,i)=>{
+        const def=R16_DEF.find(d=>d.num===mn);
+        const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(Xr16R,r16Y(i),COL,t1,t2,r16w[mn]);
+        conn(Xr16R,r16Y(i)+MH/2,XqfR+COL,qfY(Math.floor(i/2))+MH/2);
+    });
+    ['M98','M100'].forEach((mn,i)=>{
+        const def=QF_DEF.find(d=>d.num===mn);
+        const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+        ensureFlag(t1);ensureFlag(t2);
+        drawMatch(XqfR,qfY(i),COL,t1,t2,qfw[mn]);
+        conn(XqfR,qfY(i)+MH/2,XsfR+COL,sfY()+MH/2);
+    });
+    {const def=SF_DEF.find(d=>d.num==='M102');
+     const t1=getMatchWinner(def?.src1),t2=getMatchWinner(def?.src2);
+     ensureFlag(t1);ensureFlag(t2);
+     drawMatch(XsfR,sfY(),COL,t1,t2,sfw['M102']);
+     conn(Xctr+CTR_W,sfY()+MH/2,XsfR,sfY()+MH/2);}
 
-    ctx.beginPath();
-    ctx.moveTo(300, 1820);
-    ctx.lineTo(1620, 1820);
-    ctx.stroke();
+    // ── CENTER COLUMN ──
+    // 1. Cup image at top of center column
+    const CUP_SZ = 200;
+    const cupY = BRACKET_TOP + RND_HDR_H + BRACKET_PAD;
+    const cupImg=new Image(); cupImg.src='cup.png';
+    cupImg.onload=()=>{ ctx.drawImage(cupImg, ctrCX-CUP_SZ/2, cupY, CUP_SZ, CUP_SZ); };
 
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.font = "34px Microsoft YaHei";
+    // 2. Final match at sfY
+    const fw=selections.finalWinner;
+    const FMW = Math.round(COL * 1.15);   // final match slightly wider
+    const FMX = ctrCX - FMW/2;
+    ctx.fillStyle='rgba(255,215,0,0.09)'; rr(FMX-3,sfY()-3,FMW+6,MH+6,7); ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,0.55)'; ctx.lineWidth=2; rr(FMX-3,sfY()-3,FMW+6,MH+6,7); ctx.stroke();
+    const ft1=getMatchWinner(FINAL_DEF.src1),ft2=getMatchWinner(FINAL_DEF.src2);
+    ensureFlag(ft1); ensureFlag(ft2);
+    drawMatch(FMX, sfY(), FMW, ft1, ft2, fw);
 
-    ctx.fillText(
-        "2026 FIFA World Cup Predictor",
-        W/2,
-        1880
-    );
+    // 3. Champion box (below final)
+    if (fw) {
+        const champTeam=getTeamByName(fw);
+        ctx.fillStyle='rgba(255,215,0,0.11)'; rr(Xctr+16,champBoxY,CTR_W-32,CHAMP_BOX_H,12); ctx.fill();
+        ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=2; rr(Xctr+16,champBoxY,CTR_W-32,CHAMP_BOX_H,12); ctx.stroke();
+        ctx.fillStyle='#ffd700'; ctx.font='bold 24px "Microsoft YaHei",sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='top';
+        ctx.fillText('🏆 冠军预测', ctrCX, champBoxY+10);
+        // Flag
+        const CF_W=80, CF_H=54;
+        if(champTeam&&champTeam.flag){
+            const cf=new Image(); cf.src=champTeam.flag;
+            cf.onload=()=>{
+                ctx.drawImage(cf, ctrCX-CF_W/2, champBoxY+40, CF_W, CF_H);
+                ctx.fillStyle='#ffd700'; ctx.font='bold 24px "Microsoft YaHei",sans-serif';
+                ctx.textAlign='center'; ctx.textBaseline='top';
+                ctx.fillText(fw, ctrCX, champBoxY+CHAMP_BOX_H-30);
+            };
+        }
+        ctx.fillStyle='#ffd700'; ctx.font='bold 24px "Microsoft YaHei",sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='top';
+        ctx.fillText(fw, ctrCX, champBoxY+CHAMP_BOX_H-30);
+    }
+
+    // 4. Invite text + QR  — embedded inside center column, below champion
+    //    These sit on top of the (empty) center column background; left/right bracket rows
+    //    don't reach this low so there's no overlap.
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillStyle='#ffd700';
+    ctx.font='bold 34px "Microsoft YaHei",sans-serif';
+    ctx.fillText('你也想预测？快扫二维码！', ctrCX, INVITE_Y);
+
+    // QR — square, white background
+    const qrImg=new Image(); qrImg.src='QR.png';
+    qrImg.onload=()=>{
+        const qsz=Math.max(QR_SZ,120);
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(ctrCX-qsz/2-6, QR_Y-6, qsz+12, qsz+12);
+        ctx.drawImage(qrImg, ctrCX-qsz/2, QR_Y, qsz, qsz);
+    };
+
+    // ── FOOTER ──
+    ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(0,FOOTER_TOP,W,FOOTER_H);
+    ctx.fillStyle='#c8102e'; ctx.fillRect(0,FOOTER_TOP,W,6);
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#ffd700';
+    ctx.font='bold 68px "Microsoft YaHei",sans-serif';
+    ctx.fillText('截图发朋友圈/微信群，成绩最好者可获大奖！', W/2, FOOTER_TOP+FOOTER_H/2);
 }
 
-function downloadCanvas() {
-    const canvas = document.getElementById('resultCanvas');
-    if (!canvas) return;
-    canvas.toBlob((blob) => {
-        const a = document.createElement('a');
-        a.download = '我的世界杯预测.png';
-        a.href = URL.createObjectURL(blob);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }, 'image/png', 1.0);
+function downloadCanvas(){
+    const canvas=document.getElementById('resultCanvas'); if (!canvas) return;
+    setTimeout(()=>{
+        canvas.toBlob(blob=>{
+            const a=document.createElement('a');
+            a.download='我的世界杯预测_2026.png';
+            a.href=URL.createObjectURL(blob);
+            a.click();
+        },'image/png');
+    },400);
 }
 
-function restartGame() {
-    if (!confirm('确定重新预测吗？所有进度将清空。')) return;
-    selections = {groups:{}, thirdPlaced:[], r32Winners:{}, r16Winners:{}, qfWinners:{}, sfWinners:{}, finalWinner:null};
-    currentStep = 1;
-    document.getElementById('stepNum').textContent = 1;
-    document.getElementById('btnRow').style.display = '';
+function restartGame(){
+    if (!confirm('确定重新预测吗？进度将清空。')) return;
+    selections={groups:{},thirdPlaced:[],r32Winners:{},r16Winners:{},qfWinners:{},sfWinners:{},finalWinner:null};
+    currentStep=1;
+    document.getElementById('stepNum').textContent=1;
+    document.getElementById('btnRow').style.display='';
+    document.getElementById('nextBtn').textContent='下一步 →';
+    document.getElementById('nextBtn').onclick=nextStep;
     renderStep1();
 }
 
